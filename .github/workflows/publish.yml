@@ -5,10 +5,9 @@ on:
         branches:
             - main
 jobs:
-    publish:
+    storybook:
         runs-on: ubuntu-latest
         permissions:
-            packages: write
             contents: write
         steps:
             - uses: actions/checkout@v4
@@ -16,11 +15,16 @@ jobs:
             - run: |
                   git config --global user.name "Smuk Ferenc"
                   git config --global user.email "frigyes.smuk@gmail.com"
-                  npm version patch -m '[skip ci] Increase version'
             - run: |
-                  npm install
-                  npm run build
-            - run: npm publish
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-            - run: git push
+                  git fetch
+                  git checkout storybook
+                  git merge main --allow unrelated-histories --no-ff -X theirs
+            - run: |
+                  npm i
+                  npm run build-storybook
+                  rm -rf docs
+                  mv storybook-static docs
+            - run: |
+                  git add .
+                  git commit -m "Update storybook"
+                  git push
